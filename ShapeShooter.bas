@@ -98,7 +98,7 @@ Do
     Select Case KeyHit
         Case 27: Exit Do
         Case 82, 114: 'Radial Attack
-            If RadialCharge >= 25 Then DrawRadialAttack RadialCharge * RadialChargeRadius: RadialCharge = RadialCharge - Min(RadialCharge, 100)
+            If RadialCharge >= 25 Then DrawRadialAttack Min(RadialCharge, 100) * RadialChargeRadius: RadialCharge = RadialCharge - Min(RadialCharge, 100)
     End Select
     _KeyClear
     If HardnessIncreaseDelay = 0 Then
