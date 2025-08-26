@@ -13,7 +13,7 @@ Type Entity
     As _Unsigned _Byte Alive, Type
     As Vec2 Position
     As Single Angle, MaxSpeed
-    As Long Health, MaxHealth
+    As Long Health, MaxHealth, MoneyValue
     As _Byte MoveCooldown, ShootCooldown
 End Type
 Type Bullet
@@ -132,6 +132,7 @@ Sub NewEnemy (__Type As _Unsigned _Byte) Static
     Enemies(I).MaxSpeed = 8 + Hardness
     Enemies(I).MoveCooldown = 0
     Enemies(I).ShootCooldown = 0
+    Enemies(I).MoneyValue = 2 * __Type - 1
 End Sub
 Function RandomValuesOutside! Static '(-0.5, 0) U (1, 1.5)
     T! = Rnd - 0.5
@@ -192,7 +193,7 @@ Sub DrawBullets Static
                 Bullets(I).Alive = 0
                 Enemies(J).Health = Clamp(0, Enemies(J).Health - 1, Enemies(J).MaxHealth)
                 Enemies(J).Alive = Enemies(J).Health <> 0
-                If Enemies(J).Alive = 0 Then NewMoney Enemies(J).Position, Enemies(J).MaxHealth
+                If Enemies(J).Alive = 0 Then NewMoney Enemies(J).Position, Enemies(J).MoneyValue
                 Exit For
             End If
         Next J
@@ -243,7 +244,7 @@ Sub DrawRadialAttack (PowerLevel As _Unsigned Integer) Static
             If Vec2Dis(Player.Position, Enemies(I).Position) < Player_Max_Radius + FinalPowerLevel And Enemies(I).Alive Then
                 Enemies(I).Health = Clamp(0, Enemies(I).Health - 5, Enemies(I).MaxHealth)
                 Enemies(I).Alive = Enemies(I).Health <> 0
-                If Enemies(I).Alive = 0 Then NewMoney Enemies(I).Position, Enemies(I).MaxHealth
+                If Enemies(I).Alive = 0 Then NewMoney Enemies(I).Position, Enemies(I).MoneyValue
             End If
         Next I
         OldFinalPowerLevel = FinalPowerLevel
