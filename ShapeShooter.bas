@@ -43,8 +43,8 @@ _Font Font&
 Const D2R_90 = _D2R(90)
 
 Dim Shared As _Unsigned Long RadialCharge, LaserCharge
-Dim Shared As Single RadialWaveDamage, LaserDamage
-RadialWaveDamage = 0.25: LaserDamage = 1
+Dim Shared As Single RadialWaveDamage, BulletsDamage, LaserDamage
+RadialWaveDamage = 0.25: BulletsDamage = 1: LaserDamage = 1
 
 Dim Shared Enemies(1023) As Entity, NewEnemyID As _Unsigned _Bit * 10
 
@@ -169,12 +169,13 @@ Sub DrawBackground Static
 End Sub
 
 Sub DrawMenu Static
-    Static As _Unsigned Long Cost_MaxSpeed, Cost_MultiShot, Cost_FireSpeed, Cost_RadialWave, Cost_Laser
-    Static As _Unsigned Integer Level_MaxSpeed, Level_MultiShot, Level_FireSpeed, Level_RadialWave, Level_Laser
+    Static As _Unsigned Long Cost_MaxSpeed, Cost_MultiShot, Cost_FireSpeed, Cost_RadialWave, Cost_Bullets, Cost_Laser
+    Static As _Unsigned Integer Level_MaxSpeed, Level_MultiShot, Level_FireSpeed, Level_RadialWave, Level_Bullets, Level_Laser
     If Cost_MaxSpeed = 0 Then Cost_MaxSpeed = 10
     If Cost_MultiShot = 0 Then Cost_MultiShot = 100
     If Cost_FireSpeed = 0 Then Cost_FireSpeed = 25
     If Cost_RadialWave = 0 Then Cost_RadialWave = 500
+    If Cost_Bullets = 0 Then Cost_Bullets = 250
     If Cost_Laser = 0 Then Cost_Laser = 250
     Do
         Cls , _RGB32(0, 0, 31)
@@ -199,13 +200,19 @@ Sub DrawMenu Static
             PlayerShootCooldown = 30 / Level_FireSpeed
             Cost_FireSpeed = Cost_FireSpeed * 2
         End If
-        If DrawMenuCard(0.3 * _Width, 0.7 * _Height, "Radial Wave", "Level" + Str$(Level_RadialWave + 1), _Trim$(Str$(Cost_RadialWave)), AnimationData4~%%, IIF(PlayerMoney >= Cost_RadialWave, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_RadialWave Then
+        If DrawMenuCard(0.25 * _Width, 0.7 * _Height, "Radial Wave", "Level" + Str$(Level_RadialWave + 1), _Trim$(Str$(Cost_RadialWave)), AnimationData4~%%, IIF(PlayerMoney >= Cost_RadialWave, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_RadialWave Then
             PlayerMoney = PlayerMoney - Cost_RadialWave
             Level_RadialWave = Level_RadialWave + 1
             RadialWaveDamage = RadialWaveDamage + 0.25
             Cost_RadialWave = Cost_RadialWave * 2
         End If
-        If DrawMenuCard(0.7 * _Width, 0.7 * _Height, "Laser", "Level" + Str$(Level_Laser + 1), _Trim$(Str$(Cost_Laser)), AnimationData5~%%, IIF(PlayerMoney >= Cost_Laser, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Laser Then
+        If DrawMenuCard(0.5 * _Width, 0.7 * _Height, "Bullets", "Level" + Str$(Level_Bullets + 1), _Trim$(Str$(Cost_Bullets)), AnimationData5~%%, IIF(PlayerMoney >= Cost_Bullets, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Bullets Then
+            PlayerMoney = PlayerMoney - Cost_Bullets
+            Level_Bullets = Level_Bullets + 1
+            BulletsDamage = BulletsDamage + 1
+            Cost_Bullets = Cost_Bullets + 250
+        End If
+        If DrawMenuCard(0.75 * _Width, 0.7 * _Height, "Laser", "Level" + Str$(Level_Laser + 1), _Trim$(Str$(Cost_Laser)), AnimationData6~%%, IIF(PlayerMoney >= Cost_Laser, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Laser Then
             PlayerMoney = PlayerMoney - Cost_Laser
             Level_Laser = Level_Laser + 1
             LaserDamage = LaserDamage + 1
@@ -345,7 +352,7 @@ Sub DrawEnemies Static
 End Sub
 Sub KillEntity (I As _Unsigned Long)
     NewMoney Enemies(I).Position, Enemies(I).MoneyValue
-    Select EveryCase I
+    Select EveryCase Enemies(I).Type
         Case 65, 66, 67: Player.Health = Player.Health + 5
         Case 67: Player.MaxHealth = Player.MaxHealth + 5
     End Select
@@ -367,13 +374,20 @@ Sub DrawBullets Static
         For J = 0 To 1023
             If Enemies(J).Alive And Vec2Dis(Bullets(I).Position, Enemies(J).Position) <= 20 Then
                 Bullets(I).Alive = 0
-                Enemies(J).Health = Clamp(0, Enemies(J).Health - 1, Enemies(J).MaxHealth)
+                Enemies(J).Health = Clamp(0, Enemies(J).Health - BulletsDamage, Enemies(J).MaxHealth)
                 Enemies(J).Alive = Enemies(J).Health <> 0
                 If Enemies(J).Alive = 0 Then KillEntity J
                 Exit For
             End If
         Next J
-        For R = 1 To 3: Circle (Bullets(I).Position.X - Camera.X, Bullets(I).Position.Y - Camera.Y), R, -1: Next R
+        Select Case BulletsDamage Mod 4
+            Case 0: BulletsColour& = -1
+            Case 1: BulletsColour& = _RGB32(0, 127, 255)
+            Case 2: BulletsColour& = _RGB32(0, 191, 0)
+            Case 3: BulletsColour& = _RGB32(255, 127, 0)
+        End Select
+        Circle (Bullets(I).Position.X - Camera.X, Bullets(I).Position.Y - Camera.Y), 2, BulletsColour&
+        Circle (Bullets(I).Position.X - Camera.X, Bullets(I).Position.Y - Camera.Y), 3, BulletsColour&
     Next I
 End Sub
 Sub NewEnemyBullet (Source As Vec2, Angle As Single, Speed As Single) Static
