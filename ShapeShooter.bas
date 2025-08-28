@@ -356,7 +356,7 @@ Sub DrawEnemies Static
         Enemies(I).StyleAngle = Enemies(I).StyleAngle + 0.01
     Next I
 End Sub
-Sub CollisionResolutionByAngle (Position As Vec2, Angle!)
+Sub CollisionResolutionByAngle (Position As Vec2, Angle!) Static
     Position.X = Position.X + Cos(Angle!) * CollisionResolutionDistance
     Position.Y = Position.Y + Sin(Angle!) * CollisionResolutionDistance
 End Sub
@@ -380,7 +380,7 @@ Sub Enemy_1_Circle (Mode~%%, I As _Unsigned Long) Static
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_2_Square (Mode~%%, I As _Unsigned Long)
+Sub Enemy_2_Square (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 4, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 15, 16, _RGB32(0, 191, 63)
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
@@ -397,7 +397,7 @@ Sub Enemy_2_Square (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_3_Triangle (Mode~%%, I As _Unsigned Long)
+Sub Enemy_3_Triangle (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 3, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 14, 15, _RGB32(255, 0, 255)
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
@@ -414,7 +414,7 @@ Sub Enemy_3_Triangle (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_4_RoseCurve (Mode~%%, I As _Unsigned Long)
+Sub Enemy_4_RoseCurve (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y: For T! = 0 To 360: __T! = _D2R(T!) - Enemies(I).StyleAngle: __TC! = CosTable(T!): __TS! = SinTable(T!)
                 L! = Cos(4 * __T!)
@@ -437,7 +437,7 @@ Sub Enemy_4_RoseCurve (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_5_Pentagon (Mode~%%, I As _Unsigned Long)
+Sub Enemy_5_Pentagon (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 5, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 14, 15, _RGB32(255, 0, 255)
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
@@ -454,7 +454,7 @@ Sub Enemy_5_Pentagon (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_6_Hexagon (Mode~%%, I As _Unsigned Long)
+Sub Enemy_6_Hexagon (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 6, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 14, 15, _RGB32(255, 0, 255)
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
@@ -471,7 +471,7 @@ Sub Enemy_6_Hexagon (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_7_Hypocycloid (Mode~%%, I As _Unsigned Long)
+Sub Enemy_7_Hypocycloid (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y: For T! = 0 To 360: __T! = _D2R(T!) - Enemies(I).StyleAngle: __TC! = CosTable(T!): __TS! = SinTable(T!)
                 L! = 1 - Cos(8 * __T!)
@@ -494,7 +494,7 @@ Sub Enemy_7_Hypocycloid (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_8_Octagon (Mode~%%, I As _Unsigned Long)
+Sub Enemy_8_Octagon (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 8, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 14, 15, _RGB32(255, 0, 255)
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
@@ -511,7 +511,7 @@ Sub Enemy_8_Octagon (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Enemy_9_Minion (Mode~%%, I As _Unsigned Long)
+Sub Enemy_9_Minion (Mode~%%, I As _Unsigned Long) Static
     If EnemyCircleImage& = 0 Then
         EnemyCircleImage& = _NewImage(30, 30, 32): _Dest EnemyCircleImage&: Circle (15, 15), 10, _RGB32(191, 0, 95): Circle (15, 15), 15, _RGB32(191, 0, 95): Paint (27, 15), _RGB32(191, 0, 95): _Dest 0
     End If
@@ -533,7 +533,7 @@ Sub Enemy_9_Minion (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Boss_1_Slow (Mode~%%, I As _Unsigned Long)
+Sub Boss_1_Slow (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
             DesignWaveCircle X, Y, Enemies(I).StyleAngle, 10, 42 + 8 * Cos(Enemies(I).StyleAngle), 50 + 8 * Sin(Enemies(I).StyleAngle), _RGB32(200, 0, 0)
@@ -555,7 +555,7 @@ Sub Boss_1_Slow (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Boss_2_Minion (Mode~%%, I As _Unsigned Long)
+Sub Boss_2_Minion (Mode~%%, I As _Unsigned Long) Static
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
@@ -588,7 +588,7 @@ Sub Boss_2_Minion (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Boss_3_Decagon (Mode~%%, I As _Unsigned Long)
+Sub Boss_3_Decagon (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: DesignRegularPolygon 10, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 42, 50, _RGB32(120, 0, 180)
             Circle (Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y), (900 - Enemies(I).ShootCooldown) / 25, _RGB32(120, 0, 180)
@@ -609,7 +609,7 @@ Sub Boss_3_Decagon (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Boss_4_Absorber (Mode~%%, I As _Unsigned Long)
+Sub Boss_4_Absorber (Mode~%%, I As _Unsigned Long) Static
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
@@ -633,7 +633,7 @@ Sub Boss_4_Absorber (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: If Rnd > 0.9 Then Enemies(I).HitRadius = Enemies(I).HitRadius + 1
     End Select
 End Sub
-Sub Boss_5_Wave (Mode~%%, I As _Unsigned Long)
+Sub Boss_5_Wave (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
             DesignRegularPolygon 24, X, Y, Enemies(I).StyleAngle, 42, 50, _RGB32(210, 210, 0)
@@ -655,7 +655,7 @@ Sub Boss_5_Wave (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: If Enemies(I).ShootCooldown > 0 Then Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub Boss_6_Orbiter (Mode~%%, I As _Unsigned Long)
+Sub Boss_6_Orbiter (Mode~%%, I As _Unsigned Long) Static
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
@@ -676,7 +676,7 @@ Sub Boss_6_Orbiter (Mode~%%, I As _Unsigned Long)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
-Sub KillEntity (I As _Unsigned Long)
+Sub KillEntity (I As _Unsigned Long) Static
     NewMoney Enemies(I).Position, Enemies(I).MoneyValue
     Score = Score + Enemies(I).MoneyValue
     Select EveryCase Enemies(I).Type
