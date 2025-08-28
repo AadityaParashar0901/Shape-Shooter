@@ -37,13 +37,15 @@ Dim Shared As Entity Player
 NewVec2 Player.Position, _Width / 2, _Height / 2
 Player.MaxSpeed = 2.5
 Player.MaxHealth = 10: Player.Health = Player.MaxHealth
-Dim Shared PlayerMultiShot, PlayerShootCooldown: PlayerMultiShot = 1: PlayerShootCooldown = 30
+Dim Shared PlayerHelper, PlayerShootCooldown: PlayerHelper = 1: PlayerShootCooldown = 30
 
 Const D2R_90 = _D2R(90)
 
 Dim Shared As _Unsigned Long RadialCharge, LaserCharge
 Dim Shared As Single RadialWaveDamage, BulletsDamage, LaserDamage
 RadialWaveDamage = 0.25: BulletsDamage = 1: LaserDamage = 1
+
+Dim Shared Helpers(255) As Entity, NewHelperID As _Unsigned _Byte
 
 Dim Shared Enemies(1023) As Entity, NewEnemyID As _Unsigned _Bit * 10
 Dim Shared LatestEnemyID As _Unsigned Integer
@@ -80,7 +82,7 @@ Do
     While _MouseInput: Wend
     NewVec2 MousePosition, _MouseX, _MouseY: Vec2Add MousePosition, Camera
 
-    DrawBackground
+    DrawBackground: DrawHelper
     DrawEnemies
     DrawBullets: DrawEnemyBullets
     DrawMoney
@@ -114,7 +116,7 @@ Do
     Else EnemySpawnCooldown = EnemySpawnCooldown - Sgn(EnemySpawnCooldown)
     End If
     If BossSpawnCooldown = 0 Then
-        BossSpawnCooldown = Max(180, 3600 - 5 * Hardness)
+        BossSpawnCooldown = Max(180, 3600 - 600 * Hardness)
         NewBossEnemy Int(Rnd * Min(6, ceil(Hardness))) + 1
     Else BossSpawnCooldown = BossSpawnCooldown - Sgn(BossSpawnCooldown)
     End If
@@ -129,14 +131,7 @@ Do
 
         If (_KeyDown(32) Or _MouseButton(1)) And Player.ShootCooldown = 0 Then
             Player.ShootCooldown = PlayerShootCooldown
-            AngleDifference! = -0.05 / PlayerMultiShot
-            Dim As Vec2 NewBulletPosition
-            Angle! = Vec2Angle(Player.Position, MousePosition)
-            For I = 1 To PlayerMultiShot
-                NewVec2 NewBulletPosition, Player.Position.X + 5 * Cos(Angle! + D2R_90), Player.Position.Y + 5 * Sin(Angle! + D2R_90)
-                NewBullet Player.Position, Angle! + AngleDifference!
-                AngleDifference! = AngleDifference! + 0.1 / PlayerMultiShot
-            Next I
+            NewBullet Player.Position, Vec2Angle(Player.Position, MousePosition)
         End If
         Player.ShootCooldown = Player.ShootCooldown - Sgn(Player.ShootCooldown)
 
@@ -147,6 +142,8 @@ Do
                 If RadialCharge >= 25 Then DrawRadialAttack RadialCharge * RadialChargeRadius: RadialCharge = 0
             Case 67, 99: 'Laser Attack
                 If LaserCharge >= 25 Then DrawLaserAttack LaserCharge * LaserChargeTime: LaserCharge = 0
+            Case 78, 110: 'New Helper
+                If PlayerMoney >= 100 Then NewHelper: PlayerMoney = PlayerMoney - 100
         End Select
 
         If HardnessIncreaseDelay = 0 Then
@@ -171,10 +168,10 @@ Sub DrawBackground Static
 End Sub
 
 Sub DrawMenu Static
-    Static As _Unsigned Long Cost_MaxSpeed, Cost_MultiShot, Cost_FireSpeed, Cost_RadialWave, Cost_Bullets, Cost_Laser
-    Static As _Unsigned Integer Level_MaxSpeed, Level_MultiShot, Level_FireSpeed, Level_RadialWave, Level_Bullets, Level_Laser
-    If Cost_MaxSpeed = 0 Then Cost_MaxSpeed = 10
-    If Cost_MultiShot = 0 Then Cost_MultiShot = 100
+    Static As _Unsigned Long Cost_MaxSpeed, Cost_Helper, Cost_FireSpeed, Cost_RadialWave, Cost_Bullets, Cost_Laser
+    Static As _Unsigned Integer Level_MaxSpeed, Level_Helper, Level_FireSpeed, Level_RadialWave, Level_Bullets, Level_Laser
+    If Cost_MaxSpeed = 0 Then Cost_MaxSpeed = 25
+    If Cost_Helper = 0 Then Cost_Helper = 1000
     If Cost_FireSpeed = 0 Then Cost_FireSpeed = 25
     If Cost_RadialWave = 0 Then Cost_RadialWave = 500
     If Cost_Bullets = 0 Then Cost_Bullets = 250
@@ -187,14 +184,14 @@ Sub DrawMenu Static
         If DrawMenuCard(0.25 * _Width, 0.4 * _Height, "Speed", "Level" + Str$(Level_MaxSpeed + 1), _Trim$(Str$(Cost_MaxSpeed)), AnimationData1~%%, IIF(PlayerMoney >= Cost_MaxSpeed, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_MaxSpeed Then
             PlayerMoney = PlayerMoney - Cost_MaxSpeed
             Player.MaxSpeed = Player.MaxSpeed + 0.1
-            Cost_MaxSpeed = Cost_MaxSpeed + 10
+            Cost_MaxSpeed = Cost_MaxSpeed + 25
             Level_MaxSpeed = Level_MaxSpeed + 1
         End If
-        If DrawMenuCard(0.5 * _Width, 0.4 * _Height, "MultiShot", "Level" + Str$(Level_MultiShot + 1), _Trim$(Str$(Cost_MultiShot)), AnimationData2~%%, IIF(PlayerMoney >= Cost_MultiShot, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_MultiShot Then
-            PlayerMoney = PlayerMoney - Cost_MultiShot
-            PlayerMultiShot = PlayerMultiShot + 1
-            Level_MultiShot = Level_MultiShot + 1
-            Cost_MultiShot = Level_MultiShot * 500
+        If DrawMenuCard(0.5 * _Width, 0.4 * _Height, "Helper", "Level" + Str$(Level_Helper + 1), _Trim$(Str$(Cost_Helper)), AnimationData2~%%, IIF(PlayerMoney >= Cost_Helper, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Helper Then
+            PlayerMoney = PlayerMoney - Cost_Helper
+            PlayerHelper = PlayerHelper + 1
+            Level_Helper = Level_Helper + 1
+            Cost_Helper = Level_Helper * 2000
         End If
         If DrawMenuCard(0.75 * _Width, 0.4 * _Height, "Fire", "Level" + Str$(Level_FireSpeed + 1), _Trim$(Str$(Cost_FireSpeed)), AnimationData3~%%, IIF(PlayerMoney >= Cost_FireSpeed, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_FireSpeed Then
             PlayerMoney = PlayerMoney - Cost_FireSpeed
@@ -239,9 +236,47 @@ Function DrawMenuCard (X As Integer, Y As Integer, Label$, Line1$, Line2$, Anima
     End If
 End Function
 
+Sub NewHelper Static
+    Helpers(NewHelperID).Alive = -1
+    Helpers(NewHelperID).Type = 1
+    Helpers(NewHelperID).MaxHealth = PlayerHelper * 5 + 5
+    Helpers(NewHelperID).Health = PlayerHelper * 5 + 5
+    Helpers(NewHelperID).SetShootCooldown = 15
+    Helpers(NewHelperID).MaxSpeed = PlayerHelper * 2.5
+    Helpers(NewHelperID).HitRadius = 9 + PlayerHelper
+    Helpers(NewHelperID).MoveCooldown = 3600
+    Helpers(NewHelperID).Position = Player.Position
+    NewHelperID = NewHelperID + 1
+End Sub
+Sub DrawHelper Static
+    MinDisBossID = 0
+    MaxHealth = 0
+    For I = 0 To 1023
+        If Enemies(I).Alive = 0 Then _Continue
+        If Enemies(I).Health > Enemies(MaxHealth).Health Then
+            MaxHealth = I
+        ElseIf Vec2Dis(Enemies(MinDisBossID).Position, Player.Position) > Vec2Dis(Enemies(I).Position, Player.Position) Then
+            MinDisBossID = I
+        End If
+    Next I
+    For I = 0 To 255
+        If Helpers(I).Alive = 0 Then Exit Sub
+        Select Case Helpers(I).Type
+            Case 1: If Enemies(Helpers(I).SpecialData).Alive = 0 Then Helpers(I).SpecialData = IIF(MaxHealth, MaxHealth, MinDisBossID)
+                Helpers(I).ShootCooldown = ClampCycle(0, Helpers(I).ShootCooldown - 1, Helpers(I).SetShootCooldown)
+                If Helpers(I).ShootCooldown = 0 And Enemies(Helpers(I).SpecialData).Alive Then NewBullet Helpers(I).Position, Vec2Angle(Helpers(I).Position, Enemies(Helpers(I).SpecialData).Position)
+                Circle (Helpers(I).Position.X - Camera.X, Helpers(I).Position.Y - Camera.Y), Helpers(I).HitRadius, -1
+        End Select
+        Helpers(I).MoveCooldown = Helpers(I).MoveCooldown - Sgn(Helpers(I).MoveCooldown)
+        Helpers(I).Alive = Helpers(I).MoveCooldown <> 0
+        Helpers(I).Position.X = Helpers(I).Position.X + Sgn(Enemies(Helpers(I).SpecialData).Position.X - Helpers(I).Position.X)
+        Helpers(I).Position.Y = Helpers(I).Position.Y + Sgn(Enemies(Helpers(I).SpecialData).Position.Y - Helpers(I).Position.Y)
+    Next I
+End Sub
+
 Sub NewEnemy (__Type As _Unsigned _Byte) Static
     If Enemies(NewEnemyID).Alive Then
-        For I = 1 To 1023
+        For I = 0 To 1023
             If Enemies(I).Alive = 0 Then Exit For
         Next I
         If I = 1024 Then NewEnemyID = NewEnemyID + 1: Exit Sub
@@ -501,7 +536,7 @@ End Sub
 Sub Boss_1_Slow (Mode~%%, I As _Unsigned Long)
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignWaveCircle X, Y, Enemies(I).StyleAngle, 10, 42 + 8 * Cos(Enemies(I).StyleAngle), 50 + 8 * Sin(Enemies(I).StyleAngle), _RGB32(191, 0, 95)
+            DesignWaveCircle X, Y, Enemies(I).StyleAngle, 10, 42 + 8 * Cos(Enemies(I).StyleAngle), 50 + 8 * Sin(Enemies(I).StyleAngle), _RGB32(200, 0, 0)
             If Enemies(I).ShootCooldown = 0 Then
                 For J = 1 To 6: NewEnemyBullet Enemies(I).Position, Enemies(I).StyleAngle + J * _Pi / 3, 1: Next J
             End If
@@ -524,7 +559,7 @@ Sub Boss_2_Minion (Mode~%%, I As _Unsigned Long)
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignRegularPolygon 6, X, Y, Enemies(I).StyleAngle, 42, 50, _RGB32(127, 63, 0)
+            DesignRegularPolygon 6, X, Y, Enemies(I).StyleAngle, 42, 50, _RGB32(34, 200, 34)
             R = Enemies(I).SpecialData / 60
             For T! = 0 To 359 Step 60: __T! = _D2R(T!) + Enemies(I).StyleAngle: __TC! = Cos(__T!): __TS! = Sin(__T!)
                 __X1 = X + (50 + 2 * R) * __TC!: __Y1 = Y + (50 + 2 * R) * __TS!
@@ -555,8 +590,8 @@ Sub Boss_2_Minion (Mode~%%, I As _Unsigned Long)
 End Sub
 Sub Boss_3_Decagon (Mode~%%, I As _Unsigned Long)
     Select Case Mode~%%
-        Case MODE_SIMULATE: DesignRegularPolygon 10, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 42, 50, _RGB32(0, 127, 0)
-            Circle (Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y), (900 - Enemies(I).ShootCooldown) / 25, _RGB32(0, 127, 0)
+        Case MODE_SIMULATE: DesignRegularPolygon 10, Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y, Enemies(I).StyleAngle, 42, 50, _RGB32(120, 0, 180)
+            Circle (Enemies(I).Position.X - Camera.X, Enemies(I).Position.Y - Camera.Y), (900 - Enemies(I).ShootCooldown) / 25, _RGB32(120, 0, 180)
             If Enemies(I).ShootCooldown = 0 Then
                 For J = 1 To 6: NewEnemy 9: Next J
             End If
@@ -578,8 +613,8 @@ Sub Boss_4_Absorber (Mode~%%, I As _Unsigned Long)
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignRegularPolygon 16, X, Y, Enemies(I).StyleAngle, 8, 16, _RGB32(0, 127, 255)
-            DesignRegularPolygon 16, X, Y, Enemies(I).StyleAngle, Enemies(I).HitRadius - 24, Enemies(I).HitRadius, _RGB32(0, 127, 255)
+            DesignRegularPolygon 16, X, Y, Enemies(I).StyleAngle, 8, 16, _RGB32(0, 120, 255)
+            DesignRegularPolygon 16, X, Y, Enemies(I).StyleAngle, Enemies(I).HitRadius - 24, Enemies(I).HitRadius, _RGB32(0, 120, 255)
             If Enemies(I).SpecialData = 1 Then
                 Enemies(I).HitRadius = Enemies(I).HitRadius + (50 - Enemies(I).HitRadius)
                 If Enemies(I).HitRadius = 50 Then Enemies(I).SpecialData = 0
@@ -601,15 +636,15 @@ End Sub
 Sub Boss_5_Wave (Mode~%%, I As _Unsigned Long)
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignRegularPolygon 24, X, Y, Enemies(I).StyleAngle, 42, 50, _RGB32(255, 255, 0)
+            DesignRegularPolygon 24, X, Y, Enemies(I).StyleAngle, 42, 50, _RGB32(210, 210, 0)
             If Enemies(I).ShootCooldown < 0 Then
-                Circle (X, Y), 50 - Enemies(I).ShootCooldown * 2, _RGB32(255, 255, 0, 255 + 2 * Enemies(I).ShootCooldown)
+                Circle (X, Y), 50 - Enemies(I).ShootCooldown * 2, _RGB32(210, 210, 0, 255 + 2 * Enemies(I).ShootCooldown)
                 If Vec2Dis(Enemies(I).Position, Player.Position) <= 50 - Enemies(I).ShootCooldown * 2 And Enemies(I).SpecialData = 0 Then
                     Player.Health = Player.Health - 1
                     Enemies(I).SpecialData = 1
                 End If
             Else
-                Circle (X, Y), (60 - Enemies(I).ShootCooldown) / 1.5, _RGB32(255, 255, 0)
+                Circle (X, Y), (60 - Enemies(I).ShootCooldown) / 1.5, _RGB32(210, 210, 0)
                 Enemies(I).SpecialData = 0
             End If
             If Vec2Dis(Enemies(I).Position, Player.Position) > 60 Then
@@ -617,14 +652,14 @@ Sub Boss_5_Wave (Mode~%%, I As _Unsigned Long)
                 Enemies(I).Position.Y = Enemies(I).Position.Y + Sin(Enemies(I).Angle)
             End If
             Enemies(I).ShootCooldown = ClampCycle(-120, Enemies(I).ShootCooldown - 1, 60)
-        Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
+        Case MODE_BULLETBEHAVIOUR: If Enemies(I).ShootCooldown > 0 Then Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
     End Select
 End Sub
 Sub Boss_6_Orbiter (Mode~%%, I As _Unsigned Long)
     Dim As Vec2 BulletPosition
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignRegularPolygon 3, X, Y, Enemies(I).Angle, 42, 50, _RGB32(191, 31, 0)
+            DesignRegularPolygon 3, X, Y, Enemies(I).Angle, 42, 50, _RGB32(255, 40, 90)
             distance! = Vec2Dis(Enemies(I).Position, Player.Position)
             If InRange(280, distance!, 320) = 0 Then
                 Enemies(I).Position.X = Enemies(I).Position.X - Cos(Enemies(I).Angle) * Sgn(300 - distance!)
