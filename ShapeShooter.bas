@@ -1,14 +1,11 @@
-'$Dynamic
 '$Include:'lib\vector\vector.bi'
 Randomize Timer
 Screen _NewImage(640, 640, 32)
 _Title "Shape Shooter"
 Color -1, 0
+_FullScreen _SquarePixels
 
-Dim Shared BigFont&, Font&
-Font& = _LoadFont("lucon.ttf", 16)
-BigFont& = _LoadFont("consola.ttf", 32, "MONOSPACE")
-_Font Font&
+Dim Shared SmallFont&, Font&, BigFont&
 
 Type Entity
     As _Unsigned _Byte Alive, Type
@@ -31,26 +28,17 @@ End Type
 Dim Shared As Vec2 Camera
 
 Dim Shared As Single CosTable(0 To 360), SinTable(0 To 360)
-For T! = 0 To 360: CosTable(T!) = Cos(_D2R(T!)): SinTable(T!) = Sin(_D2R(T!)): Next T!
 
 Dim Shared As Entity Player
-NewVec2 Player.Position, _Width / 2, _Height / 2
-Player.MaxSpeed = 2.5
-Player.MaxHealth = 10: Player.Health = Player.MaxHealth
 Dim Shared PlayerHelper, PlayerShootCooldown: PlayerHelper = 1: PlayerShootCooldown = 30
 
-Const D2R_90 = _D2R(90)
-
-Dim Shared As _Unsigned Long RadialCharge, LaserCharge
+Dim Shared As _Unsigned Long SpecialCharge
 Dim Shared As Single RadialWaveDamage, BulletsDamage, LaserDamage
-RadialWaveDamage = 0.25: BulletsDamage = 1: LaserDamage = 1
 
 Dim Shared Helpers(255) As Entity, NewHelperID As _Unsigned _Byte
 
 Dim Shared Enemies(1023) As Entity, NewEnemyID As _Unsigned _Bit * 10
 Dim Shared LatestEnemyID As _Unsigned Integer
-Const MODE_SIMULATE = 1
-Const MODE_BULLETBEHAVIOUR = 2
 
 Dim Shared Bullets(1023) As Bullet, NewBulletID As _Unsigned _Bit * 10
 Dim Shared EnemyBullets(1023) As Bullet, NewEnemyBulletID As _Unsigned _Bit * 10
@@ -58,15 +46,8 @@ Dim Shared EnemyBullets(1023) As Bullet, NewEnemyBulletID As _Unsigned _Bit * 10
 Dim Shared Points(1023) As Money, NewMoneyID As _Unsigned _Bit * 10
 Dim Shared As _Unsigned Long PlayerMoney
 
-Const Player_Max_Radius = 20
-Const CollisionResolutionDistance = 20
-Const BulletSpeed = 20
-
-Const RadialChargeRadius = 3
-Const LaserChargeTime = 0.6
-
 Dim As _Unsigned _Byte EnemySpawnCooldown
-Dim As _Unsigned Integer BossSpawnCooldown: BossSpawnCooldown = 3600
+Dim As _Unsigned Integer BossSpawnCooldown
 
 Dim Shared As Double Hardness
 
@@ -75,6 +56,34 @@ Dim Shared As Vec2 MousePosition
 Dim Shared As _Unsigned Long TimeCounter
 
 Dim Shared As _Unsigned Long Score
+
+SmallFont& = _LoadFont("lucon.ttf", 12)
+Font& = _LoadFont("lucon.ttf", 16)
+BigFont& = _LoadFont("consola.ttf", 32)
+_Font Font&
+For T! = 0 To 360: CosTable(T!) = Cos(_D2R(T!)): SinTable(T!) = Sin(_D2R(T!)): Next T!
+Const D2R_90 = _D2R(90)
+Const MODE_SIMULATE = 1
+Const MODE_BULLETBEHAVIOUR = 2
+
+Const Player_Max_Radius = 20
+Const CollisionResolutionDistance = 20
+Const BulletSpeed = 20
+
+Const RadialChargeRadius = 2.75 '3 - 0.25
+Const LaserChargeTime = -0.4 '1 - 0.6
+
+ShowHelpText
+
+Erase Enemies
+Erase EnemyBullets
+NewVec2 Player.Position, _Width / 2, _Height / 2
+Player.MaxSpeed = 2.5
+Player.MaxHealth = 10: Player.Health = Player.MaxHealth
+
+RadialWaveDamage = 0.25: BulletsDamage = 1: LaserDamage = 1
+
+BossSpawnCooldown = 3600
 
 Do
     Cls , _RGB32(0, 0, 31)
@@ -101,8 +110,7 @@ Do
         DrawPlayer
         Score$ = "Score:" + Str$(Score): _Font BigFont&: CenterPrint _Width / 2, 16, Score$: Print "Coins:" + Str$(PlayerMoney): _Font Font&
         RightPrint 8, "Health:" + Str$(Player.Health) + "/" + _Trim$(Str$(Player.MaxHealth))
-        _PrintString (0, 32), "Radial Attack:" + Str$(Int(RadialCharge)) + "%"
-        _PrintString (0, 48), "Laser Attack:" + Str$(Int(LaserCharge)) + "%"
+        _PrintString (0, 32), "Special Attack:" + Str$(Int(SpecialCharge)) + "%"
     End If
 
     _Display
@@ -116,7 +124,7 @@ Do
     Else EnemySpawnCooldown = EnemySpawnCooldown - Sgn(EnemySpawnCooldown)
     End If
     If BossSpawnCooldown = 0 Then
-        BossSpawnCooldown = Max(180, 3600 - 600 * Hardness)
+        BossSpawnCooldown = Max(600, 3600 - 150 * Hardness)
         NewBossEnemy Int(Rnd * Min(6, ceil(Hardness))) + 1
     Else BossSpawnCooldown = BossSpawnCooldown - Sgn(BossSpawnCooldown)
     End If
@@ -139,21 +147,20 @@ Do
         Select Case KeyHit
             Case 27: DrawMenu
             Case 82, 114: 'Radial Attack
-                If RadialCharge >= 25 Then DrawRadialAttack RadialCharge * RadialChargeRadius: RadialCharge = 0
+                If SpecialCharge >= 25 Then DrawRadialAttack Min(SpecialCharge, 100) * (RadialChargeRadius + RadialWaveDamage): SpecialCharge = SpecialCharge - Min(SpecialCharge, 100)
             Case 67, 99: 'Laser Attack
-                If LaserCharge >= 25 Then DrawLaserAttack LaserCharge * LaserChargeTime: LaserCharge = 0
+                If SpecialCharge >= 25 Then DrawLaserAttack Min(SpecialCharge, 100) * (LaserChargeTime + LaserDamage): SpecialCharge = SpecialCharge - Min(SpecialCharge, 100)
             Case 78, 110: 'New Helper
                 If PlayerMoney >= 100 Then NewHelper: PlayerMoney = PlayerMoney - 100
         End Select
-
-        If HardnessIncreaseDelay = 0 Then
-            HardnessIncreaseDelay = 60
-            Hardness = Hardness + 0.01
-        Else
-            HardnessIncreaseDelay = HardnessIncreaseDelay - 1
-        End If
-        TimeCounter = ClampCycle(0, TimeCounter + 1, 59)
     End If
+    If HardnessIncreaseDelay = 0 Then
+        HardnessIncreaseDelay = 60
+        Hardness = Hardness + 0.01
+    Else
+        HardnessIncreaseDelay = HardnessIncreaseDelay - 1
+    End If
+    TimeCounter = ClampCycle(0, TimeCounter + 1, 59)
     _KeyClear
 Loop
 System
@@ -165,6 +172,77 @@ Sub DrawBackground Static
     For Y = ModFloor(-Camera.Y, 64) To _Height + 64 Step 64
         Line (0, Y)-(_Width - 1, Y), _RGB32(31)
     Next Y
+End Sub
+
+Sub ShowHelpText Static
+    Dim As _Unsigned _Byte Page
+    Do
+        Cls , _RGB32(0, 0, 31)
+        _Limit 60
+        Enemies(0).Alive = 0
+        Select EveryCase Page
+            Case 0: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.2, "Shape Shooter": _Font Font&
+                CenterPrint _Width / 2, _Height * 0.5 - 48, "Shooting Game"
+                CenterPrint _Width / 2, _Height * 0.5 - 24, "Controls:"
+                CenterPrint _Width / 2, _Height * 0.5 - 8, "WASD, Arrow Keys - Move"
+                CenterPrint _Width / 2, _Height * 0.5 + 8, "Space LMB - Fire, Aim at Cursor"
+                CenterPrint _Width / 2, _Height * 0.5 + 24, "R - Radial Wave Attack"
+                CenterPrint _Width / 2, _Height * 0.5 + 40, "C - Laser Attack"
+                CenterPrint _Width / 2, _Height * 0.5 + 56, "N - Spawn Helper (Cost = 100)"
+                CenterPrint _Width / 2, _Height * 0.5 + 72, "Esc - Open Upgrades Menu"
+                _Font SmallFont&: CenterPrint _Width / 2, _Height * 0.8 - 6, "Press Space to Continue"
+                CenterPrint _Width / 2, _Height * 0.8 + 6, "Press Esc to Start": _Font Font&
+                _PrintString (_Width - 10 - _PrintWidth("->"), _Height * 0.95), "->"
+            Case 1 To 16: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help": _Font Font&
+                _PrintString (10, _Height * 0.95), "<-"
+            Case 1 To 15:
+                _PrintString (_Width - 10 - _PrintWidth("->"), _Height * 0.95), "->"
+                Enemies(0).Alive = -1
+                DrawPlayer
+            Case 1 To 9: Enemies(0).Type = Page
+            Case 10 To 15: Enemies(0).Type = Page + 55
+            Case 1: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Circle"
+            Case 2: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Square"
+            Case 3: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Triangle"
+            Case 4: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Rose Curve"
+            Case 5: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Pentagon"
+            Case 6: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Hexagon"
+            Case 7: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Hypocycloid"
+            Case 8: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Octagon"
+            Case 9: CenterPrint _Width / 2, _Height * 0.2, "Enemy: Minion"
+            Case 10: CenterPrint _Width / 2, _Height * 0.2, "Boss: Slow Killer"
+            Case 11: CenterPrint _Width / 2, _Height * 0.2, "Boss: Minion"
+            Case 12: CenterPrint _Width / 2, _Height * 0.2, "Boss: Decagon"
+            Case 13: CenterPrint _Width / 2, _Height * 0.2, "Boss: Absorber"
+                CenterPrint _Width / 2, _Height * 0.2 + 16, "Absorbs all bullets fired,"
+                CenterPrint _Width / 2, _Height * 0.2 + 32, "and releases all at once."
+                CenterPrint _Width / 2, _Height * 0.8 + 16, "Can only be killed by Special Attacks"
+                _Font SmallFont&: CenterPrint _Width / 2, _Height * 0.9, "Tends to contain the player": _Font Font&
+            Case 14: CenterPrint _Width / 2, _Height * 0.2, "Boss: Wave"
+            Case 15: CenterPrint _Width / 2, _Height * 0.2, "Boss: Orbiter"
+            Case 16: CenterPrint _Width / 2, _Height * 0.2, "Helper"
+                CenterPrint _Width / 2, _Height * 0.5, "An entity, which shoots enemies, but has a limited lifetime"
+            Case Else: Exit Do
+        End Select
+        DrawEnemies
+        DrawEnemyBullets
+        Select EveryCase _KeyHit
+            Case 27: Exit Do
+            Case 19200: Page = Page - 1
+            Case 32, 19712: Page = Page + 1
+            Case 32, 19200, 19712: Erase Enemies: Erase EnemyBullets
+                NewVec2 Player.Position, _Width / 2, _Height / 2
+                NewVec2 Enemies(0).Position, _Width / 2, _Height * 0.8
+                Enemies(0).Health = 1: Enemies(0).MaxHealth = 1
+        End Select
+        _Display
+    Loop
+    For I = 1 To 180
+        Cls , _RGB32(0, 0, 31)
+        _Limit 60
+        CenterPrint _Width / 2, _Height / 2, "Starting Game in " + _Trim$(Str$(ceil(3 - I / 60)))
+        _Display
+    Next I
 End Sub
 
 Sub DrawMenu Static
@@ -203,7 +281,7 @@ Sub DrawMenu Static
             PlayerMoney = PlayerMoney - Cost_RadialWave
             Level_RadialWave = Level_RadialWave + 1
             RadialWaveDamage = RadialWaveDamage + 0.25
-            Cost_RadialWave = Cost_RadialWave * 2
+            Cost_RadialWave = Cost_RadialWave + 500
         End If
         If DrawMenuCard(0.5 * _Width, 0.7 * _Height, "Bullets", "Level" + Str$(Level_Bullets + 1), _Trim$(Str$(Cost_Bullets)), AnimationData5~%%, IIF(PlayerMoney >= Cost_Bullets, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Bullets Then
             PlayerMoney = PlayerMoney - Cost_Bullets
@@ -215,7 +293,7 @@ Sub DrawMenu Static
             PlayerMoney = PlayerMoney - Cost_Laser
             Level_Laser = Level_Laser + 1
             LaserDamage = LaserDamage + 1
-            Cost_Laser = Cost_Laser * 2
+            Cost_Laser = Cost_Laser + 250
         End If
         _Display
     Loop Until _KeyHit = 27
@@ -778,8 +856,7 @@ Sub DrawMoney Static
         distance! = Vec2Dis(Points(I).Position, Player.Position)
         If distance! < Player_Max_Radius Then
             PlayerMoney = PlayerMoney + Points(I).Value
-            RadialCharge = RadialCharge - (RadialCharge < 100)
-            LaserCharge = LaserCharge - (LaserCharge < 100)
+            SpecialCharge = SpecialCharge + Points(I).Value
             Points(I).Alive = 0
         End If
     Next I
