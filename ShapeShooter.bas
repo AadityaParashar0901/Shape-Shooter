@@ -1,5 +1,5 @@
 '$Dynamic
-'$Include:'include\vector\vector.bi'
+'$Include:'lib\vector\vector.bi'
 Randomize Timer
 Screen _NewImage(640, 640, 32)
 _Title "Shape Shooter"
@@ -362,7 +362,7 @@ Sub CollisionResolutionByAngle (Position As Vec2, Angle!) Static
 End Sub
 Sub Enemy_1_Circle (Mode~%%, I As _Unsigned Long) Static
     If EnemyCircleImage& = 0 Then
-        EnemyCircleImage& = _NewImage(30, 30, 32): _Dest EnemyCircleImage&: Circle (15, 15), 10, _RGB32(0, 127, 255): Circle (15, 15), 15, _RGB32(0, 127, 255): Paint (27, 15), _RGB32(0, 127, 255): _Dest 0
+        EnemyCircleImage& = _NewImage(31, 31, 32): _Dest EnemyCircleImage&: Circle (15, 15), 10, _RGB32(0, 127, 255): Circle (15, 15), 15, _RGB32(0, 127, 255): Paint (27, 15), _RGB32(0, 127, 255): _Dest 0
     End If
     Select Case Mode~%%
         Case MODE_SIMULATE: _PutImage (Enemies(I).Position.X - Camera.X - 20, Enemies(I).Position.Y - Camera.Y - 20), EnemyCircleImage&
@@ -513,7 +513,7 @@ Sub Enemy_8_Octagon (Mode~%%, I As _Unsigned Long) Static
 End Sub
 Sub Enemy_9_Minion (Mode~%%, I As _Unsigned Long) Static
     If EnemyCircleImage& = 0 Then
-        EnemyCircleImage& = _NewImage(30, 30, 32): _Dest EnemyCircleImage&: Circle (15, 15), 10, _RGB32(191, 0, 95): Circle (15, 15), 15, _RGB32(191, 0, 95): Paint (27, 15), _RGB32(191, 0, 95): _Dest 0
+        EnemyCircleImage& = _NewImage(31, 31, 32): _Dest EnemyCircleImage&: Circle (15, 15), 10, _RGB32(191, 0, 95): Circle (15, 15), 15, _RGB32(191, 0, 95): Paint (27, 15), _RGB32(191, 0, 95): _Dest 0
     End If
     Select Case Mode~%%
         Case MODE_SIMULATE: _PutImage (Enemies(I).Position.X - Camera.X - 20, Enemies(I).Position.Y - Camera.Y - 20), EnemyCircleImage&
@@ -595,15 +595,18 @@ Sub Boss_3_Decagon (Mode~%%, I As _Unsigned Long) Static
             If Enemies(I).ShootCooldown = 0 Then
                 For J = 1 To 6: NewEnemy 9: Next J
             End If
+            If (Enemies(I).ShootCooldown Mod 90) = 0 Then
+                NewEnemyBullet Enemies(I).Position, Enemies(I).Angle, 5
+            End If
             distance! = Vec2Dis(Player.Position, Enemies(I).Position)
             If distance! <= Player_Max_Radius + Enemies(I).HitRadius Then
                 CollisionResolutionByAngle Player.Position, Enemies(I).Angle
                 CollisionResolutionByAngle Enemies(I).Position, -Enemies(I).Angle
                 Player.Health = Player.Health - 1
             End If
-            If distance! < 300 Then
-                Enemies(I).Position.X = Enemies(I).Position.X - Cos(Enemies(I).Angle)
-                Enemies(I).Position.Y = Enemies(I).Position.Y - Sin(Enemies(I).Angle)
+            If InRange(240, distance!, 300) = 0 Then
+                Enemies(I).Position.X = Enemies(I).Position.X - Cos(Enemies(I).Angle) * Sgn(270 - distance!)
+                Enemies(I).Position.Y = Enemies(I).Position.Y - Sin(Enemies(I).Angle) * Sgn(270 - distance!)
             End If
             Enemies(I).ShootCooldown = ClampCycle(0, Enemies(I).ShootCooldown - 1, 900)
         Case MODE_BULLETBEHAVIOUR: Enemies(I).Health = Clamp(0, Enemies(I).Health - BulletsDamage, Enemies(I).MaxHealth)
@@ -840,7 +843,7 @@ Sub DrawCoin (X As Integer, Y As Integer, Value As Integer, Colour As Long)
         Line (X - halfWidth, Y + dY)-(X + halfWidth, Y + dY), Colour
     Next
 End Sub
-'$Include:'include\vector\vector.bm'
+'$Include:'lib\vector\vector.bm'
 Function ceil# (x#)
     ceil# = Int(x#) + Sgn(x# - Int(x#))
 End Function
@@ -883,9 +886,9 @@ End Sub
 Sub WaitForMouseButton
     While _MouseInput Or _MouseButton(1) Or _MouseButton(2): Wend
 End Sub
-'$Include:'include\inrange.bm'
-'$Include:'include\clamp.bm'
-'$Include:'include\modfloor.bm'
-'$Include:'include\iif.bm'
-'$Include:'include\min.bm'
-'$Include:'include\max.bm'
+'$Include:'lib\inrange.bm'
+'$Include:'lib\clamp.bm'
+'$Include:'lib\modfloor.bm'
+'$Include:'lib\iif.bm'
+'$Include:'lib\min.bm'
+'$Include:'lib\max.bm'

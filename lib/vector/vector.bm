@@ -1,0 +1,127 @@
+$Checking:Off
+Sub NewVec2 (__V As Vec2, __X As Single, __Y As Single) Static
+    __V.X = __X
+    __V.Y = __Y
+End Sub
+Function Vec2Dot (__V1 As Vec2, __V2 As Vec2) Static
+    Vec2Dot = __V1.X * __V2.X + __V1.Y * __V2.Y
+End Function
+Function Vec2Length (__V As Vec2) Static
+    Vec2Length = Sqr(__V.X * __V.X + __V.Y * __V.Y)
+End Function
+Function Vec2Angle (__V1 As Vec2, __V2 As Vec2) Static
+    Vec2Angle = _Atan2(__V2.Y - __V1.Y, __V2.X - __V1.X)
+End Function
+Sub Vec2Add (__V1 As Vec2, __V2 As Vec2) Static
+    __V1.X = __V1.X + __V2.X
+    __V1.Y = __V1.Y + __V2.Y
+End Sub
+Sub Vec2Multiply (__V As Vec2, K As Single) Static
+    __V.X = __V.X * K
+    __V.Y = __V.Y * K
+End Sub
+Sub Vec2MultiplyAdd (__V1 As Vec2, __V2 As Vec2, K As Single) Static
+    __V1.X = __V1.X + __V2.X * K
+    __V1.Y = __V1.Y + __V2.Y * K
+End Sub
+Sub Vec2Normalize (__V As Vec2) Static
+    Dim As Single __L
+    __L = Vec2Length(__V)
+    Vec2Multiply __V, 1 / __L
+End Sub
+Function Vec2Dis (__V1 As Vec2, __V2 As Vec2) Static
+    Vec2Dis = _Hypot(__V1.X - __V2.X, __V1.Y - __V2.Y)
+End Function
+Sub Vec2Rotate (__V As Vec2, __T As Single) Static
+    Dim __TV As Vec2, __CT As Single, __ST As Single
+    __CT = Cos(__T): __ST = Sin(__T)
+    __TV.X = __V.X * -__CT - __V.Y * __ST
+    __TV.Y = __V.X * __ST - __V.Y * __CT
+    __V = __TV
+End Sub
+Function Vec2String$ (__V As Vec2) Static
+    Vec2String$ = MKS$(__V.X) + MKS$(__V.Y)
+End Function
+Sub Vec2FromString (__V$, __V As Vec2) Static
+    __V.X = CVS(Left$(__V$, 4))
+    __V.Y = CVS(Right$(__V$, 4))
+End Sub
+Function Vec2Equal (__V1 As Vec2, __V2 As Vec2) Static
+    Vec2Equal = (__V1.X = __V2.X) And (__V1.Y = __V2.Y)
+End Function
+Function Vec2RoundEqual (__V1 As Vec2, __V2 As Vec2) Static
+    Vec2RoundEqual = (Abs(__V1.X - __V2.X) < 0.01) And (Abs(__V1.Y - __V2.Y) < 0.01)
+End Function
+Sub NewVec3 (__V As Vec3, __X As Single, __Y As Single, __Z As Single) Static
+    __V.X = __X
+    __V.Y = __Y
+    __V.Z = __Z
+End Sub
+Function Vec3Dot (__V1 As Vec3, __V2 As Vec3) Static
+    Vec3Dot = __V1.X * __V2.X + __V1.Y * __V2.Y + __V1.Z * __V2.Z
+End Function
+Function Vec3Length (__V As Vec3) Static
+    Vec3Length = Sqr(__V.X * __V.X + __V.Y * __V.Y + __V.Z * __V.Z)
+End Function
+Function Vec3Angle (__V1 As Vec3, __V2 As Vec3) Static
+    Vec3Angle = _Acos(Vec3Dot(__V1, __V2) / Vec3Length(__V1) / Vec3Length(__V2))
+End Function
+Sub Vec3Add (__V1 As Vec3, __V2 As Vec3) Static
+    __V1.X = __V1.X + __V2.X
+    __V1.Y = __V1.Y + __V2.Y
+    __V1.Z = __V1.Z + __V2.Z
+End Sub
+Sub Vec3Multiply (__V As Vec3, K As Single) Static
+    __V.X = __V.X * K
+    __V.Y = __V.Y * K
+    __V.Z = __V.Z * K
+End Sub
+Sub Vec3MultiplyAdd (__V1 As Vec3, __V2 As Vec3, K As Single) Static
+    __V1.X = __V1.X + __V2.X * K
+    __V1.Y = __V1.Y + __V2.Y * K
+    __V1.Z = __V1.Z + __V2.Z * K
+End Sub
+Sub Vec3Normalize (__V As Vec3) Static
+    Dim As Single __L
+    __L = Vec3Length(__V)
+    Vec3Multiply __V, 1 / __L
+End Sub
+Function Vec3Dis (__V1 As Vec3, __V2 As Vec3) Static
+    Vec3Dis = _Hypot(_Hypot(__V1.X - __V2.X, __V1.Y - __V2.Y), __V1.Z - __V2.Z)
+End Function
+Sub Vec3RotateX (__V As Vec3, __T As Single) Static
+    Dim __TV As Vec3, __CT As Single, __ST As Single
+    __CT = Cos(__T): __ST = Sin(__T)
+    __TV.Y = __V.Y * -__CT - __V.Z * __ST
+    __TV.Z = __V.Y * __ST - __V.Z * __CT
+    __V = __TV
+End Sub
+Sub Vec3RotateY (__V As Vec3, __T As Single) Static
+    Dim __TV As Vec3, __CT As Single, __ST As Single
+    __CT = Cos(__T): __ST = Sin(__T)
+    __TV.X = __V.X * -__CT - __V.Z * __ST
+    __TV.Z = __V.X * __ST - __V.Z * __CT
+    __V = __TV
+End Sub
+Sub Vec3RotateZ (__V As Vec3, __T As Single) Static
+    Dim __TV As Vec3, __CT As Single, __ST As Single
+    __CT = Cos(__T): __ST = Sin(__T)
+    __TV.X = __V.X * -__CT - __V.Y * __ST
+    __TV.Y = __V.X * __ST - __V.Y * __CT
+    __V = __TV
+End Sub
+Function Vec3String$ (__V As Vec3) Static
+    Vec3String$ = MKS$(__V.X) + MKS$(__V.Y) + MKS$(__V.Z)
+End Function
+Sub Vec3FromString (__V$, __V As Vec3) Static
+    __V.X = CVS(Left$(__V$, 4))
+    __V.Y = CVS(Mid$(__V$, 5, 4))
+    __V.Z = CVS(Right$(__V$, 4))
+End Sub
+Function Vec3Equal (__V1 As Vec3, __V2 As Vec3) Static
+    Vec3Equal = (__V1.X = __V2.X) And (__V1.Y = __V2.Y) And (__V1.Z = __V2.Z)
+End Function
+Function Vec3RoundEqual (__V1 As Vec3, __V2 As Vec3) Static
+    Vec3RoundEqual = (Abs(__V1.X - __V2.X) < 0.01) And (Abs(__V1.Y - __V2.Y) < 0.01) And (Abs(__V1.Z - __V2.Z) < 0.01)
+End Function
+$Checking:On
