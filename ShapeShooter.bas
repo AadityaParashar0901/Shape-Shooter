@@ -108,9 +108,9 @@ Do
         _Font Font&
     Else
         DrawPlayer
-        Score$ = "Score:" + Str$(Score): _Font BigFont&: CenterPrint _Width / 2, 16, Score$: Print "Coins:" + Str$(PlayerMoney): _Font Font&
-        RightPrint 8, "Health:" + Str$(Player.Health) + "/" + _Trim$(Str$(Player.MaxHealth))
-        _PrintString (0, 32), "Special Attack:" + Str$(Int(SpecialCharge)) + "%"
+        _Font BigFont&: CenterPrint _Width / 2, 16, "Score:" + Str$(Score): Print "Coins:" + Str$(PlayerMoney)
+        RightPrint 8, "Health:" + Str$(Player.Health) + "/" + _Trim$(Str$(Player.MaxHealth)): _Font Font&
+        _PrintString (0, 32), "Special Attack (R/C):" + Str$(Int(SpecialCharge)) + "%"
     End If
 
     _Display
@@ -152,6 +152,7 @@ Do
                 If SpecialCharge >= 25 Then DrawLaserAttack Min(SpecialCharge, 100) * (LaserChargeTime + LaserDamage): SpecialCharge = SpecialCharge - Min(SpecialCharge, 100)
             Case 78, 110: 'New Helper
                 If PlayerMoney >= 100 Then NewHelper: PlayerMoney = PlayerMoney - 100
+            Case 34048: If _FullScreen Then _FullScreen Off Else _FullScreen _SquarePixels
         End Select
     End If
     If HardnessIncreaseDelay = 0 Then
@@ -182,21 +183,25 @@ Sub ShowHelpText Static
         Enemies(0).Alive = 0
         Select EveryCase Page
             Case 0: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.2, "Shape Shooter": _Font Font&
-                CenterPrint _Width / 2, _Height * 0.5 - 48, "Shooting Game"
-                CenterPrint _Width / 2, _Height * 0.5 - 24, "Controls:"
-                CenterPrint _Width / 2, _Height * 0.5 - 8, "WASD, Arrow Keys - Move"
+                CenterPrint _Width / 2, _Height * 0.4, "Shooting Game"
+                CenterPrint _Width / 2, _Height * 0.5 - 32, "---Controls---"
+                CenterPrint _Width / 2, _Height * 0.5 - 8, "WASD, Arrow Keys - Move        "
                 CenterPrint _Width / 2, _Height * 0.5 + 8, "Space LMB - Fire, Aim at Cursor"
-                CenterPrint _Width / 2, _Height * 0.5 + 24, "R - Radial Wave Attack"
-                CenterPrint _Width / 2, _Height * 0.5 + 40, "C - Laser Attack"
-                CenterPrint _Width / 2, _Height * 0.5 + 56, "N - Spawn Helper (Cost = 100)"
-                CenterPrint _Width / 2, _Height * 0.5 + 72, "Esc - Open Upgrades Menu"
-                _Font SmallFont&: CenterPrint _Width / 2, _Height * 0.8 - 6, "Press Space to Continue"
-                CenterPrint _Width / 2, _Height * 0.8 + 6, "Press Esc to Start": _Font Font&
-                _PrintString (_Width - 10 - _PrintWidth("->"), _Height * 0.95), "->"
-            Case 1 To 16: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help": _Font Font&
-                _PrintString (10, _Height * 0.95), "<-"
-            Case 1 To 15:
-                _PrintString (_Width - 10 - _PrintWidth("->"), _Height * 0.95), "->"
+                CenterPrint _Width / 2, _Height * 0.5 + 24, "R - Radial Wave Attack         "
+                CenterPrint _Width / 2, _Height * 0.5 + 40, "C - Laser Attack               "
+                CenterPrint _Width / 2, _Height * 0.5 + 56, "N - Spawn Helper (Cost = 100)  "
+                CenterPrint _Width / 2, _Height * 0.5 + 72, "Esc - Open Upgrades Menu       "
+                _Font SmallFont&: CenterPrint _Width / 2, _Height * 0.8 - 6, "Press Space to Show Help"
+                CenterPrint _Width / 2, _Height * 0.8 + 6, "Press Esc to Start"
+                CenterPrint _Width / 2, _Height * 0.9, "Made by Aaditya Parashar": _Font Font&
+                _PrintString (_Width - 10 - _PrintWidth("Right->"), _Height * 0.95), "Right->"
+            Case 1 To 9: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help: Entities": _Font Font&
+            Case 10 To 15: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help: Bosses": _Font Font&
+            Case 16: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help: Helpers": _Font Font&
+            Case 17: _Font BigFont&: CenterPrint _Width / 2, _Height * 0.1, "Help: Upgrades": _Font Font&
+            Case 1 To 17: _PrintString (10, _Height * 0.95), "<-Left"
+            Case 1 To 16:
+                _PrintString (_Width - 10 - _PrintWidth("Right->"), _Height * 0.95), "Right->"
                 Enemies(0).Alive = -1
                 DrawPlayer
             Case 1 To 9: Enemies(0).Type = Page
@@ -222,6 +227,14 @@ Sub ShowHelpText Static
             Case 15: CenterPrint _Width / 2, _Height * 0.2, "Boss: Orbiter"
             Case 16: CenterPrint _Width / 2, _Height * 0.2, "Helper"
                 CenterPrint _Width / 2, _Height * 0.5, "An entity, which shoots enemies, but has a limited lifetime"
+            Case 17: CenterPrint _Width / 2, _Height * 0.2, "Upgrades"
+                CenterPrint _Width / 2, _Height * 0.5 - 32, "Speed: Increases Player Movement Speed             "
+                CenterPrint _Width / 2, _Height * 0.5 - 16, "Fire: Increases Player Firing Speed                "
+                CenterPrint _Width / 2, _Height * 0.5 - 0, "Bullets: Upgrades Player Bullet Damage             "
+                CenterPrint _Width / 2, _Height * 0.5 + 16, "Helper: Upgrade Helper                             "
+                CenterPrint _Width / 2, _Height * 0.5 + 32, "Radial Damage: Upgrades Special Power - Radial Wave"
+                CenterPrint _Width / 2, _Height * 0.5 + 48, "Laser Damage: Upgrades Special Power - Laser       "
+                _PrintString (_Width - 10 - _PrintWidth("Start"), _Height * 0.95), "Start"
             Case Else: Exit Do
         End Select
         DrawEnemies
@@ -234,13 +247,15 @@ Sub ShowHelpText Static
                 NewVec2 Player.Position, _Width / 2, _Height / 2
                 NewVec2 Enemies(0).Position, _Width / 2, _Height * 0.8
                 Enemies(0).Health = 1: Enemies(0).MaxHealth = 1
+            Case 34048: If _FullScreen Then _FullScreen Off Else _FullScreen _SquarePixels
         End Select
         _Display
     Loop
     For I = 1 To 180
         Cls , _RGB32(0, 0, 31)
         _Limit 60
-        CenterPrint _Width / 2, _Height / 2, "Starting Game in " + _Trim$(Str$(ceil(3 - I / 60)))
+        _Font BigFont&: CenterPrint _Width / 2, _Height * 0.5, "Enjoy": _Font Font&
+        CenterPrint _Width / 2, _Height * 0.7, "Starting Game in " + _Trim$(Str$(ceil(3 - I / 60)))
         _Display
     Next I
 End Sub
@@ -265,29 +280,29 @@ Sub DrawMenu Static
             Cost_MaxSpeed = Cost_MaxSpeed + 25
             Level_MaxSpeed = Level_MaxSpeed + 1
         End If
-        If DrawMenuCard(0.5 * _Width, 0.4 * _Height, "Helper", "Level" + Str$(Level_Helper + 1), _Trim$(Str$(Cost_Helper)), AnimationData2~%%, IIF(PlayerMoney >= Cost_Helper, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Helper Then
-            PlayerMoney = PlayerMoney - Cost_Helper
-            PlayerHelper = PlayerHelper + 1
-            Level_Helper = Level_Helper + 1
-            Cost_Helper = Level_Helper * 2000
-        End If
-        If DrawMenuCard(0.75 * _Width, 0.4 * _Height, "Fire", "Level" + Str$(Level_FireSpeed + 1), _Trim$(Str$(Cost_FireSpeed)), AnimationData3~%%, IIF(PlayerMoney >= Cost_FireSpeed, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_FireSpeed Then
+        If DrawMenuCard(0.5 * _Width, 0.4 * _Height, "Fire", "Level" + Str$(Level_FireSpeed + 1), _Trim$(Str$(Cost_FireSpeed)), AnimationData3~%%, IIF(PlayerMoney >= Cost_FireSpeed, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_FireSpeed Then
             PlayerMoney = PlayerMoney - Cost_FireSpeed
             Level_FireSpeed = Level_FireSpeed + 1
             PlayerShootCooldown = 30 / Level_FireSpeed
             Cost_FireSpeed = Cost_FireSpeed * 2
         End If
-        If DrawMenuCard(0.25 * _Width, 0.7 * _Height, "Radial Wave", "Level" + Str$(Level_RadialWave + 1), _Trim$(Str$(Cost_RadialWave)), AnimationData4~%%, IIF(PlayerMoney >= Cost_RadialWave, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_RadialWave Then
-            PlayerMoney = PlayerMoney - Cost_RadialWave
-            Level_RadialWave = Level_RadialWave + 1
-            RadialWaveDamage = RadialWaveDamage + 0.25
-            Cost_RadialWave = Cost_RadialWave + 500
-        End If
-        If DrawMenuCard(0.5 * _Width, 0.7 * _Height, "Bullets", "Level" + Str$(Level_Bullets + 1), _Trim$(Str$(Cost_Bullets)), AnimationData5~%%, IIF(PlayerMoney >= Cost_Bullets, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Bullets Then
+        If DrawMenuCard(0.75 * _Width, 0.4 * _Height, "Bullets", "Level" + Str$(Level_Bullets + 1), _Trim$(Str$(Cost_Bullets)), AnimationData5~%%, IIF(PlayerMoney >= Cost_Bullets, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Bullets Then
             PlayerMoney = PlayerMoney - Cost_Bullets
             Level_Bullets = Level_Bullets + 1
             BulletsDamage = BulletsDamage + 1
             Cost_Bullets = Cost_Bullets + 250
+        End If
+        If DrawMenuCard(0.25 * _Width, 0.7 * _Height, "Helper", "Level" + Str$(Level_Helper + 1), _Trim$(Str$(Cost_Helper)), AnimationData2~%%, IIF(PlayerMoney >= Cost_Helper, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Helper Then
+            PlayerMoney = PlayerMoney - Cost_Helper
+            PlayerHelper = PlayerHelper + 1
+            Level_Helper = Level_Helper + 1
+            Cost_Helper = Level_Helper * 2000
+        End If
+        If DrawMenuCard(0.5 * _Width, 0.7 * _Height, "Radial Wave", "Level" + Str$(Level_RadialWave + 1), _Trim$(Str$(Cost_RadialWave)), AnimationData4~%%, IIF(PlayerMoney >= Cost_RadialWave, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_RadialWave Then
+            PlayerMoney = PlayerMoney - Cost_RadialWave
+            Level_RadialWave = Level_RadialWave + 1
+            RadialWaveDamage = RadialWaveDamage + 0.25
+            Cost_RadialWave = Cost_RadialWave + 500
         End If
         If DrawMenuCard(0.75 * _Width, 0.7 * _Height, "Laser", "Level" + Str$(Level_Laser + 1), _Trim$(Str$(Cost_Laser)), AnimationData6~%%, IIF(PlayerMoney >= Cost_Laser, -1, _RGB32(255, 0, 0))) And PlayerMoney >= Cost_Laser Then
             PlayerMoney = PlayerMoney - Cost_Laser
@@ -295,8 +310,12 @@ Sub DrawMenu Static
             LaserDamage = LaserDamage + 1
             Cost_Laser = Cost_Laser + 250
         End If
+        Select Case _KeyHit
+            Case 27: Exit Do
+            Case 34048: If _FullScreen Then _FullScreen Off Else _FullScreen _SquarePixels
+        End Select
         _Display
-    Loop Until _KeyHit = 27
+    Loop
 End Sub
 Function DrawMenuCard (X As Integer, Y As Integer, Label$, Line1$, Line2$, AnimationData As _Byte, Colour As Long) Static
     Dim As Vec2 A, B
@@ -552,7 +571,7 @@ End Sub
 Sub Enemy_7_Hypocycloid (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y: For T! = 0 To 360: __T! = _D2R(T!) - Enemies(I).StyleAngle: __TC! = CosTable(T!): __TS! = SinTable(T!)
-                L! = 1 - Cos(8 * __T!)
+                L! = 1 - Cos(3 * __T!)
                 __X1 = X + 10 * L! * __TC!
                 __Y1 = Y + 10 * L! * __TS!
                 __X2 = X + 12 * L! * __TC!
@@ -746,8 +765,9 @@ Sub Boss_6_Orbiter (Mode~%%, I As _Unsigned Long) Static
                 Enemies(I).Position.X = Enemies(I).Position.X - Cos(Enemies(I).Angle) * Sgn(300 - distance!)
                 Enemies(I).Position.Y = Enemies(I).Position.Y - Sin(Enemies(I).Angle) * Sgn(300 - distance!)
             Else
-                Enemies(I).Position.X = Enemies(I).Position.X + Cos(Enemies(I).Angle + D2R_90)
-                Enemies(I).Position.Y = Enemies(I).Position.Y + Sin(Enemies(I).Angle + D2R_90)
+                dAngle! = IIF(I And 1, D2R_90, -D2R_90)
+                Enemies(I).Position.X = Enemies(I).Position.X + Cos(Enemies(I).Angle + dAngle!)
+                Enemies(I).Position.Y = Enemies(I).Position.Y + Sin(Enemies(I).Angle + dAngle!)
             End If
             If Enemies(I).ShootCooldown = 0 Then
                 NewVec2 BulletPosition, Enemies(I).Position.X + 20 * Cos(Enemies(I).Angle), Enemies(I).Position.Y + 20 * Sin(Enemies(I).Angle)
