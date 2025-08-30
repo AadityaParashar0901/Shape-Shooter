@@ -103,13 +103,12 @@ Do
             Case 89, 121: Run
             Case 27, 78, 110: Exit Do
         End Select
-        CenterPrint _Width / 2, 16, "Score:" + Str$(Score)
+        CenterPrint _Width / 2, 16, "Score:" + Str$(Score): _Font Font&
         Print "Coins:" + Str$(PlayerMoney)
-        _Font Font&
     Else
         DrawPlayer
-        _Font BigFont&: CenterPrint _Width / 2, 16, "Score:" + Str$(Score): Print "Coins:" + Str$(PlayerMoney)
-        RightPrint 8, "Health:" + Str$(Player.Health) + "/" + _Trim$(Str$(Player.MaxHealth)): _Font Font&
+        _Font BigFont&: CenterPrint _Width / 2, 16, "Score:" + Str$(Score): Print "Coins:" + Str$(PlayerMoney): _Font Font&
+        RightPrint 8, "Health:" + Str$(Player.Health) + "/" + _Trim$(Str$(Player.MaxHealth))
         _PrintString (0, 32), "Special Attack (R/C):" + Str$(Int(SpecialCharge)) + "%"
     End If
 
