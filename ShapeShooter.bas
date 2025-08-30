@@ -614,7 +614,7 @@ End Sub
 Sub Boss_1_Slow (Mode~%%, I As _Unsigned Long) Static
     Select Case Mode~%%
         Case MODE_SIMULATE: X = Enemies(I).Position.X - Camera.X: Y = Enemies(I).Position.Y - Camera.Y
-            DesignWaveCircle X, Y, Enemies(I).StyleAngle, 10, 42 + 8 * Cos(Enemies(I).StyleAngle), 50 + 8 * Sin(Enemies(I).StyleAngle), _RGB32(200, 0, 0)
+            DesignWaveCircle X, Y, Enemies(I).StyleAngle, 10, 42 + 4 * Cos(Enemies(I).StyleAngle), 50 + 4 * Cos(Enemies(I).StyleAngle), _RGB32(200, 0, 0)
             If Enemies(I).ShootCooldown = 0 Then
                 For J = 1 To 6: NewEnemyBullet Enemies(I).Position, Enemies(I).StyleAngle + J * _Pi / 3, 1: Next J
             End If
