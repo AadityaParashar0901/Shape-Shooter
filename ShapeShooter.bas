@@ -876,6 +876,10 @@ Sub DrawMoney Static
         If distance! < Player_Max_Radius Then
             PlayerMoney = PlayerMoney + Points(I).Value
             SpecialCharge = SpecialCharge + Points(I).Value
+            If SpecialCharge > 500 Then
+                Score = Score + SpecialCharge - 500
+                SpecialCharge = 500
+            End If
             Points(I).Alive = 0
         End If
     Next I
